@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: app
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile
+    command: sh -c "alembic upgrade head && python app/main.py"
+    ports:
+      - 8080:8000
+    networks:
+      - mynetwork
+    depends_on:
+      - postgres_db
+
+  postgres_db:
+    container_name: postgres
+    image: postgres:16.1
+    environment:
+      env_file: ./.env
+      POSTGRES_DB: ${DB_POSTGRES_NAME}
+      POSTGRES_USER: ${DB_POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+    ports:
+      - "${DB_POSTGRES_PORT}:5432"
+    networks:
+      - mynetwork
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+networks:
+  mynetwork:
+    driver: bridge
